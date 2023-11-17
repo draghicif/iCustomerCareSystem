@@ -1,20 +1,18 @@
 ﻿using iCustomerCareSystem.Data;
 using iCustomerCareSystem.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Prism.Commands;
-using Prism.Mvvm;
-using Microsoft.EntityFrameworkCore;
-using System.Windows.Data;
 using System.Windows;
-using iCustomerCareSystem.Core;
+using System.Windows.Data;
+using System.Windows.Input;
 using Unity;
+using Prism.Commands;
+using iCustomerCareSystem.Views;
 
 namespace iCustomerCareSystem.ViewModels
 {
@@ -24,7 +22,7 @@ namespace iCustomerCareSystem.ViewModels
 
         private ObservableCollection<Client> _clients;
         private ObservableCollection<Client> _historicalClients;
-        private Client _selectedClient;
+        private Client? _selectedClient;
         private ICollectionView _filteredClients;
         private string _filterText;
         private readonly ClientsDbContext _clientsDbContext;
@@ -53,13 +51,16 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
-        public Client SelectedClient
+        public Client? SelectedClient
         {
             get { return _selectedClient; }
             set
             {
-                _selectedClient = value;
-                OnPropertyChanged(nameof(SelectedClient));
+                if (value != null)
+                {
+                    _selectedClient = value;
+                    OnPropertyChanged(nameof(SelectedClient));
+                }
             }
         }
 
@@ -94,10 +95,9 @@ namespace iCustomerCareSystem.ViewModels
 
         #region Behaviors  
 
-        public DelegateCommand LoadClientsCommand { get; private set; }
-        public ICommand FilterTextChangedCommand { get; }
-        public ICommand AddClientCommand { get; private set; }
+        public ICommand AddNewClientCommand { get; private set; }
         public ICommand EditClientCommand { get; private set; }
+        public ICommand PrintServiceEntryCommand { get; private set; }
 
         #endregion
 
@@ -111,6 +111,9 @@ namespace iCustomerCareSystem.ViewModels
             }
 
             InitializeAsync();
+            AddNewClientCommand = new DelegateCommand(AddNewClient);
+            EditClientCommand = new DelegateCommand(EditClient);
+            PrintServiceEntryCommand = new DelegateCommand(PrintServiceEntry);
         }
 
         #endregion
@@ -185,22 +188,24 @@ namespace iCustomerCareSystem.ViewModels
 
         #endregion
 
-        //private void AddClient()
-        //{
-        //    // Logic to open a separate window to add a new client
-        //    // This window can bind to a separate AddClientViewModel
-        //}
+        private void AddNewClient()
+        {
+            _selectedClient = null;
+            EditClient();
+        }
 
-        //private void EditClient()
-        //{
-        //    if (SelectedClient != null)
-        //    {
-        //        // Logic to open a separate window to edit the selected client
-        //        // This window can bind to a separate EditClientViewModel
-        //    }
-        //}
+        private void EditClient()
+        {
+            var addEditViewModel = new AddOrEditClientViewModel(_clientsDbContext, SelectedClient);
+            AddOrEditClientView childWindow = new AddOrEditClientView(addEditViewModel);
+            childWindow.Owner = Application.Current.MainWindow;
+            childWindow.ShowDialog();
+        }
 
-        // Implement INotifyPropertyChanged for property change notification
+        private void PrintServiceEntry()
+        {
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string propertyName)
         {

@@ -8,6 +8,8 @@ namespace iCustomerCareSystem.Data
     public class ClientsDbContext : DbContext
     {
         public DbSet<Client> Clients { get; set; }
+        public DbSet<OperationType> OperationType { get; set; }
+        public DbSet<ProductType> ProductType { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -15,6 +15,8 @@ namespace iCustomerCareSystem.Models
         public DateTime? DateOut { get; set; }
         public bool IsUrgent { get; set; }
         public bool IsReturnInService { get; set; }
+        public long ProductTypeId { get; set; }
+        public long OperationTypeId { get; set; }
 
     }
 }

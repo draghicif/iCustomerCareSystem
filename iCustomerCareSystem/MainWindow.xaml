@@ -38,13 +38,21 @@
                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1" Content="Adauga Client Nou"/>
+                    <Button Grid.Column="1" Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}"/>
 
                 </Grid>
 
                 <GroupBox Grid.Row="1" Margin="5" Header="Lista clienti:">
 
                     <DataGrid ItemsSource="{Binding FilteredClients}" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedClient, Mode=TwoWay}">
+
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Editare Client" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />                                
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="Auto"/>
                             <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="Auto"/>
