@@ -1,0 +1,103 @@
+﻿<Window x:Class="iCustomerCareSystem.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:iCustomerCareSystem" 
+        xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" 
+        xmlns:c="clr-namespace:iCustomerCareSystem.Converters"
+        mc:Ignorable="d"
+        Title="iCustomerCareSystem" Height="450" Width="1000">
+
+    <Window.DataContext>
+        <vm:ClientViewModel/>
+    </Window.DataContext>
+    
+    <Window.Resources>
+        <c:BooleanToYesNoConverter x:Key="BooleanToYesNoConverter"/>
+    </Window.Resources>
+
+    <TabControl>
+        <TabItem Header="Clienti activi in service">
+            <Grid Margin="5">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Cauta Client:</Label>
+                        <TextBox x:Name="FilterTextBox" Width="250px" VerticalAlignment="Center"
+                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Content="Adauga Client Nou"/>
+
+                </Grid>
+
+                <GroupBox Grid.Row="1" Margin="5" Header="Lista clienti:">
+
+                    <DataGrid ItemsSource="{Binding FilteredClients}" AutoGenerateColumns="False" IsReadOnly="True" SelectedItem="{Binding SelectedClient, Mode=TwoWay}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="Auto"/>
+                            <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="Auto"/>
+                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="Auto"/>
+                            <DataGridTextColumn Header="Echipament" Binding="{Binding ProductType.Name}" Width="Auto"/>
+                            <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="Auto"/>
+                            <DataGridTextColumn Header="Defect Reclamat" Binding="{Binding Reason}" Width="Auto"/>
+                            <DataGridTemplateColumn  Header="Data Intrare Service" Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DateIn, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="Auto"/>
+                            <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="Auto"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </GroupBox>
+
+
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Clienti istoric">
+
+            <GroupBox Grid.Row="1" Margin="5" Header="Clienti istoric:">
+
+                <DataGrid ItemsSource="{Binding HistoricalClients}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="Auto"/>
+                        <DataGridTextColumn Header="Echipament" Binding="{Binding ProductType.Name}" Width="Auto"/>
+                        <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="Auto"/>
+                        <DataGridTextColumn Header="Defect Reclamat" Binding="{Binding Reason}" Width="Auto"/>
+                        <DataGridTemplateColumn  Header="Data Iesire Service" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DateOut, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </GroupBox>
+
+        </TabItem>
+        
+    </TabControl>
+    
+</Window>
