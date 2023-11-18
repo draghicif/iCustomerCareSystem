@@ -59,9 +59,9 @@
                         </DataGrid.ContextMenu>
 
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="*"/>
-                            <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="*"/>
-                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="*"/>
+                            <DataGridTextColumn Header="Nume" Binding="{Binding Client.FirstName}" Width="*"/>
+                            <DataGridTextColumn Header="Prenume" Binding="{Binding Client.LastName}" Width="*"/>
+                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Client.Telephone}" Width="*"/>
                             <DataGridTextColumn Header="Echipament" Width="*">
                                 <!--<DataGridTextColumn.Binding>
                                     <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">

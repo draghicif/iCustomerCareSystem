@@ -7,7 +7,7 @@ namespace iCustomerCareSystem.Data
 {
     public class ClientsDbContext : DbContext
     {
-        public DbSet<Client> Clients { get; set; }
+        public DbSet<ClientProducts> ClientProducts { get; set; }
         public DbSet<OperationType> OperationType { get; set; }
         public DbSet<ProductType> ProductType { get; set; }
 
@@ -22,9 +22,25 @@ namespace iCustomerCareSystem.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Client>()
-                .Property(c => c.ClientId)
-                .ValueGeneratedOnAdd();
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ClientProducts>()
+                .HasKey(cp => cp.ClientProductId);
+
+            modelBuilder.Entity<ClientProducts>()
+                .HasOne(cp => cp.Client)
+                .WithMany(c => c.ClientProducts)
+                .HasForeignKey(cp => cp.ClientId);
+
+            modelBuilder.Entity<ClientProducts>()
+                .HasOne(cp => cp.OperationType)
+                .WithMany(ot => ot.ClientProducts)
+                .HasForeignKey(cp => cp.OperationTypeId);
+
+            modelBuilder.Entity<ClientProducts>()
+                .HasOne(cp => cp.ProductType)
+                .WithMany(pt => pt.ClientProducts)
+                .HasForeignKey(cp => cp.ProductTypeId);
         }
     }
 }

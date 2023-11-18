@@ -7,7 +7,6 @@ namespace iCustomerCareSystem.Models
         public long ProductTypeId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-
-        public virtual ICollection<Client> Clients { get; set; }
+        public virtual ICollection<ClientProducts> ClientProducts { get; set; }
     }
 }

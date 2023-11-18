@@ -20,9 +20,9 @@ namespace iCustomerCareSystem.ViewModels
     {
         #region Private fields
 
-        private ObservableCollection<Client> _clients;
-        private ObservableCollection<Client> _historicalClients;
-        private Client? _selectedClient;
+        private ObservableCollection<ClientProducts> _serviceClients;
+        private ObservableCollection<ClientProducts> _historicalClients;
+        private ClientProducts? _selectedClient;
         private ICollectionView _filteredClients;
         private string _filterText;
         private readonly ClientsDbContext _clientsDbContext;
@@ -31,17 +31,17 @@ namespace iCustomerCareSystem.ViewModels
 
         #region Public properties
 
-        public ObservableCollection<Client> Clients
+        public ObservableCollection<ClientProducts> Clients
         {
-            get { return _clients; }
+            get { return _serviceClients; }
             set
             {
-                _clients = value;
+                _serviceClients = value;
                 OnPropertyChanged(nameof(Clients));
             }
         }
 
-        public ObservableCollection<Client> HistoricalClients
+        public ObservableCollection<ClientProducts> HistoricalClients
         {
             get { return _historicalClients; }
             set
@@ -51,7 +51,7 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
-        public Client? SelectedClient
+        public ClientProducts? SelectedClient
         {
             get { return _selectedClient; }
             set
@@ -130,21 +130,21 @@ namespace iCustomerCareSystem.ViewModels
         {
             try
             {
-                Clients = new ObservableCollection<Client>(
-                    await _clientsDbContext.Clients
+                Clients = new ObservableCollection<ClientProducts>(
+                    await _clientsDbContext.ClientProducts
                         .Where(x => x.DateOut == null)
-                        .Include(c => c.ClientProduct)
-                            .ThenInclude(cp => cp.ProductType) // Include ProductType within ClientProduct
+                        .Include(c => c.Client)
                         .Include(c => c.OperationType)
+                        .Include(c => c.ProductType)
                         .ToListAsync()
                 );
 
-                HistoricalClients = new ObservableCollection<Client>(
-                    await _clientsDbContext.Clients
+                HistoricalClients = new ObservableCollection<ClientProducts>(
+                    await _clientsDbContext.ClientProducts
                         .Where(x => x.DateOut != null)
-                        .Include(c => c.ClientProduct)
-                        .ThenInclude(c => c.ProductType)
+                        .Include(c => c.Client)
                         .Include(c => c.OperationType)
+                        .Include(c => c.ProductType)
                         .ToListAsync()
                 );
 
@@ -166,24 +166,31 @@ namespace iCustomerCareSystem.ViewModels
                 return;
             }
 
-            var filtered = new ObservableCollection<Client>(
+            var filtered = new ObservableCollection<ClientProducts>(
                 Clients.Where(c => DoesClientMatchFilterText(c, FilterText))
             );
 
             FilteredClients = CollectionViewSource.GetDefaultView(filtered);
         }
 
-        private bool DoesClientMatchFilterText(Client client, string filterText)
+        private bool DoesClientMatchFilterText(ClientProducts clientProduct, string filterText)
         {
             var filterCriteria = new List<string> { "FirstName", "LastName", "Telephone" };
             var searchText = filterText.ToLower();
-            foreach (var property in client.GetType().GetProperties())
+            foreach (var property in clientProduct.GetType().GetProperties())
             {
-                if (filterCriteria.Contains(property.Name))
+                if (property.Name == "Client")
                 {
-                    var value = property.GetValue(client)?.ToString()?.ToLower();
-                    if (value != null && value.Contains(searchText))
-                        return true;
+                    var refClient = property.GetType().GetProperties();
+                    foreach (var clientProperty in refClient)
+                    {
+                        if (filterCriteria.Contains(clientProperty.Name))
+                        {
+                            var value = property.GetValue(clientProduct)?.ToString()?.ToLower();
+                            if (value != null && value.Contains(searchText))
+                                return true;
+                        }
+                    }
                 }
             }
             return false;

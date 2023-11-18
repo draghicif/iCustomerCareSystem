@@ -17,7 +17,7 @@ namespace iCustomerCareSystem.ViewModels
     {
         public Window ChildWindow { get; set; }
 
-        private Client _selectedClient;
+        private ClientProducts _selectedClient;
         private readonly ClientsDbContext _clientsDbContext;
 
         private ObservableCollection<ProductType> _productTypes;
@@ -64,7 +64,7 @@ namespace iCustomerCareSystem.ViewModels
                 OnPropertyChanged(nameof(OperationTypes));
             }
         }
-        public Client? SelectedClient
+        public ClientProducts? SelectedClient
         {
             get { return _selectedClient; }
             set
@@ -84,10 +84,10 @@ namespace iCustomerCareSystem.ViewModels
 
         public event EventHandler ClientAddedSuccessfully;
 
-        public AddOrEditClientViewModel(ClientsDbContext clientsDbContext, Client? selectedClient = null)
+        public AddOrEditClientViewModel(ClientsDbContext clientsDbContext, ClientProducts? selectedClient = null)
         {
             _clientsDbContext = clientsDbContext;
-            _selectedClient = selectedClient ?? new Client();
+            _selectedClient = selectedClient ?? new ClientProducts();
             ProductTypes = new ObservableCollection<ProductType>(clientsDbContext.ProductType);
             OperationTypes = new ObservableCollection<OperationType>(clientsDbContext.OperationType);
             SaveCommand = new DelegateCommand(async () => await SaveClientAsync());
@@ -107,11 +107,11 @@ namespace iCustomerCareSystem.ViewModels
             {
                 if (_selectedClient.ClientId == 0)
                 {
-                    _clientsDbContext.Clients.Add(SelectedClient);
+                    _clientsDbContext.ClientProducts.Add(SelectedClient);
                 }
                 else
                 {
-                    _clientsDbContext.Clients.Update(SelectedClient);
+                    _clientsDbContext.ClientProducts.Update(SelectedClient);
                 }
 
                 await SaveClientAsync(_clientsDbContext);
