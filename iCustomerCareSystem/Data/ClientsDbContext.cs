@@ -28,6 +28,10 @@ namespace iCustomerCareSystem.Data
                 .HasKey(cp => cp.ClientProductId);
 
             modelBuilder.Entity<ClientProducts>()
+                .Property(cp => cp.ClientProductId)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<ClientProducts>()
                 .HasOne(cp => cp.Client)
                 .WithMany(c => c.ClientProducts)
                 .HasForeignKey(cp => cp.ClientId);
