@@ -4,61 +4,84 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:iCustomerCareSystem.Views" 
-        xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels"
+        xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="AddOrEditClientView" Height="Auto" Width="325">
+        Title="AddOrEditClientView" Height="400" Width="360">
 
     <Grid>
 
         <StackPanel Orientation="Vertical">
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Nume:</Label>
                 <TextBox x:Name="FilterTextBox" Width="200px" VerticalAlignment="Center"
                     Text="{Binding SelectedClient.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Prenume:</Label>
                 <TextBox Width="200px" VerticalAlignment="Center"
                     Text="{Binding SelectedClient.LastName, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Numar Telefon:</Label>
                 <TextBox Width="200px" VerticalAlignment="Center"
                     Text="{Binding SelectedClient.Telephone, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
-            <!--<StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                
                 <Label Width="120px">Echipament:</Label>
-                <TextBox Width="200px" VerticalAlignment="Center"
-                    Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <ComboBox ItemsSource="{Binding ProductTypes}" Width="200px"
+                        SelectedItem="{Binding SelectedClient.ClientProducts.ProductType}"
+                        DisplayMemberPath="Name"
+                        SelectedValuePath="ProductTypeId">
+                    
+                <!--<i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding ProductTypeSelectionChangedCommand}"
+                                   CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource Mode=Self}}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>-->
+                    
+            </ComboBox>
+                
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                
                 <Label Width="120px">Operatiune Service:</Label>
-                <TextBox Width="200px" VerticalAlignment="Center"
-                    Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>-->
+                
+                <ComboBox ItemsSource="{Binding OperationTypes}" Width="200px"
+                        SelectedItem="{Binding SelectedClient.ClientProducts.ProductType}"
+                        DisplayMemberPath="Name"
+                        SelectedValuePath="OperationTypeId">
+                    
+                <!--<i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <i:InvokeCommandAction Command="{Binding OperationTypeSelectionChangedCommand}"
+                                   CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource Mode=Self}}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>-->
+                    
+            </ComboBox>
+                
+            </StackPanel>
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Descriere defect:</Label>
                 <TextBox Width="200px" VerticalAlignment="Center" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
                     Text="{Binding SelectedClient.Reason, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
-            <!--<StackPanel Orientation="Horizontal">
-                <Label Width="120px">Taxa de urgenta::</Label>
-                <CheckBox Width="200px" VerticalAlignment="Center"
-                    Checked="{Binding SelectedClient.IsUrgent, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <StackPanel Orientation="Horizontal">
-                <Label Width="120px">Revenire:</Label>
-                <TextBox Width="200px" VerticalAlignment="Center"
-                    Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
-            </StackPanel>-->
+                <Button Margin="10" Width="100" Command="{Binding SaveCommand}">Salvare Client</Button>
+                <Button Margin="10" Width="100" Command="{Binding CloseWindowCommand}">Renuntare</Button>
+                
+            </StackPanel>
 
         </StackPanel>
 

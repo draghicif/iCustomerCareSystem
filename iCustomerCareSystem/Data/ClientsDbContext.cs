@@ -22,6 +22,9 @@ namespace iCustomerCareSystem.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Client>()
+                .Property(c => c.ClientId)
+                .ValueGeneratedOnAdd();
         }
     }
 }

@@ -16,7 +16,7 @@ using iCustomerCareSystem.Views;
 
 namespace iCustomerCareSystem.ViewModels
 {
-    public class ClientViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : INotifyPropertyChanged
     {
         #region Private fields
 
@@ -103,7 +103,7 @@ namespace iCustomerCareSystem.ViewModels
 
         #region Constructor
 
-        public ClientViewModel()
+        public MainWindowViewModel()
         {
             if (Application.Current.Resources["UnityContainer"] is IUnityContainer container)
             {
@@ -132,7 +132,9 @@ namespace iCustomerCareSystem.ViewModels
             {
                 Clients = new ObservableCollection<Client>(
                     await _clientsDbContext.Clients
-                        .Include(c => c.ProductType)
+                        .Where(x => x.DateOut == null)
+                        .Include(c => c.ClientProduct)
+                            .ThenInclude(cp => cp.ProductType) // Include ProductType within ClientProduct
                         .Include(c => c.OperationType)
                         .ToListAsync()
                 );
@@ -140,7 +142,8 @@ namespace iCustomerCareSystem.ViewModels
                 HistoricalClients = new ObservableCollection<Client>(
                     await _clientsDbContext.Clients
                         .Where(x => x.DateOut != null)
-                        .Include(c => c.ProductType)
+                        .Include(c => c.ClientProduct)
+                        .ThenInclude(c => c.ProductType)
                         .Include(c => c.OperationType)
                         .ToListAsync()
                 );
@@ -199,7 +202,19 @@ namespace iCustomerCareSystem.ViewModels
             var addEditViewModel = new AddOrEditClientViewModel(_clientsDbContext, SelectedClient);
             AddOrEditClientView childWindow = new AddOrEditClientView(addEditViewModel);
             childWindow.Owner = Application.Current.MainWindow;
+            addEditViewModel.ChildWindow = childWindow;
+            addEditViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
             childWindow.ShowDialog();
+        }
+
+        private void HandleClientAddedSuccessfully(object sender, EventArgs e)
+        {
+           RefreshMainWindowData();
+        }
+
+        private async void RefreshMainWindowData()
+        {
+            InitializeAsync();
         }
 
         private void PrintServiceEntry()
