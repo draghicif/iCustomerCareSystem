@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:iCustomerCareSystem.Views" 
         xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="AddOrEditClientView" Height="400" Width="360">
+        Title="AddOrEditClientView" Height="520" Width="360">
 
     <Grid>
 
@@ -15,19 +15,19 @@
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Nume:</Label>
                 <TextBox x:Name="FilterTextBox" Width="200px" VerticalAlignment="Center"
-                    Text="{Binding SelectedClient.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
+                    Text="{Binding SelectedClient.Client.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Prenume:</Label>
                 <TextBox Width="200px" VerticalAlignment="Center"
-                    Text="{Binding SelectedClient.LastName, UpdateSourceTrigger=PropertyChanged}"/>
+                    Text="{Binding SelectedClient.Client.LastName, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Numar Telefon:</Label>
                 <TextBox Width="200px" VerticalAlignment="Center"
-                    Text="{Binding SelectedClient.Telephone, UpdateSourceTrigger=PropertyChanged}"/>
+                    Text="{Binding SelectedClient.Client.Telephone, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="10">
@@ -35,7 +35,7 @@
                 <Label Width="120px">Echipament:</Label>
                 
                 <ComboBox ItemsSource="{Binding ProductTypes}" Width="200px"
-                        SelectedItem="{Binding SelectedClient.ClientProducts.ProductType}"
+                        SelectedItem="{Binding SelectedClient.Client.ProductType}"
                         DisplayMemberPath="Name"
                         SelectedValuePath="ProductTypeId">
                     
@@ -45,9 +45,21 @@
                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource Mode=Self}}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>-->
-                    
-            </ComboBox>
-                
+
+                </ComboBox>
+
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Label Width="120px">Model:</Label>
+                <TextBox Width="200px" VerticalAlignment="Center"
+                         Text="{Binding SelectedClient.ProductName, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Label Width="120px">Specificatii:</Label>
+                <TextBox Width="200px" VerticalAlignment="Center"
+                        Text="{Binding SelectedClient.ProductConfiguration, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="10">
@@ -55,7 +67,7 @@
                 <Label Width="120px">Operatiune Service:</Label>
                 
                 <ComboBox ItemsSource="{Binding OperationTypes}" Width="200px"
-                        SelectedItem="{Binding SelectedClient.ClientProducts.ProductType}"
+                        SelectedItem="{Binding SelectedClient.Client.ProductType}"
                         DisplayMemberPath="Name"
                         SelectedValuePath="OperationTypeId">
                     
@@ -72,11 +84,11 @@
 
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Width="120px">Descriere defect:</Label>
-                <TextBox Width="200px" VerticalAlignment="Center" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
-                    Text="{Binding SelectedClient.Reason, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Width="200px" VerticalAlignment="Center" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                    Text="{Binding SelectedClient.Reason, UpdateSourceTrigger=PropertyChanged}" Height="70"/>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Margin="20" HorizontalAlignment="Center" Height="48">
 
                 <Button Margin="10" Width="100" Command="{Binding SaveCommand}">Salvare Client</Button>
                 <Button Margin="10" Width="100" Command="{Binding CloseWindowCommand}">Renuntare</Button>

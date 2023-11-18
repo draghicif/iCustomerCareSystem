@@ -12,7 +12,7 @@
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
-    
+
     <Window.Resources>
         <c:BooleanToYesNoConverter x:Key="BooleanToYesNoConverter"/>
         <c:ConcatenateStringsConverter x:Key="ConcatenateStringsConverter"/>
@@ -39,7 +39,7 @@
                          Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1" Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}"/>
+                    <Button Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}" Grid.ColumnSpan="2" Margin="372,0,297,0"/>
 
                 </Grid>
 
@@ -54,7 +54,7 @@
                         <DataGrid.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Editare Client" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                                <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />                                
+                                <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                             </ContextMenu>
                         </DataGrid.ContextMenu>
 
@@ -128,7 +128,7 @@
             </GroupBox>
 
         </TabItem>
-        
+
     </TabControl>
-    
+
 </Window>

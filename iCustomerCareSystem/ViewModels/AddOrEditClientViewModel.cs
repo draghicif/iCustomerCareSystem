@@ -91,8 +91,6 @@ namespace iCustomerCareSystem.ViewModels
             ProductTypes = new ObservableCollection<ProductType>(clientsDbContext.ProductType);
             OperationTypes = new ObservableCollection<OperationType>(clientsDbContext.OperationType);
             SaveCommand = new DelegateCommand(async () => await SaveClientAsync());
-            //ProductTypeSelectionChangedCommand = new DelegateCommand<object>(ProductTypeSelectionChanged);
-            //OperationTypeSelectionChangedCommand = new DelegateCommand<object>(OperationTypeSelectionChanged);
             CloseWindowCommand = new DelegateCommand<object>(CloseWindow);
         }
 
