@@ -5,7 +5,13 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\favicon.ico" />
+    <None Remove="Resources\Logo.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Services\" />
@@ -21,6 +27,11 @@
     <PackageReference Include="Prism.Wpf" Version="8.1.97" />
     <PackageReference Include="SimpleInjector" Version="5.4.2" />
     <PackageReference Include="Unity" Version="5.11.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\favicon.ico" />
+    <Resource Include="Resources\Logo.png" />
   </ItemGroup>
 
 </Project>

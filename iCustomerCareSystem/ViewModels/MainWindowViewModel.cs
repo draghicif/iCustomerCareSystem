@@ -13,6 +13,7 @@ using System.Windows.Input;
 using Unity;
 using Prism.Commands;
 using iCustomerCareSystem.Views;
+using System.Windows.Media.Imaging;
 
 namespace iCustomerCareSystem.ViewModels
 {
@@ -22,22 +23,36 @@ namespace iCustomerCareSystem.ViewModels
 
         private ObservableCollection<ClientProducts> _serviceClients;
         private ObservableCollection<ClientProducts> _historicalClients;
-        private ClientProducts? _selectedClient;
+        private ClientProducts? _selectedClientProduct;
         private ICollectionView _filteredClients;
         private string _filterText;
         private readonly ClientsDbContext _clientsDbContext;
+        private BitmapImage _imageSource;
+        private ObservableCollection<Client> _clients;
+        private Client? _selectedClient;
 
         #endregion
 
         #region Public properties
 
-        public ObservableCollection<ClientProducts> Clients
+        public ObservableCollection<Client> Clients
+        {
+            get { return _clients; }
+            set
+            {
+                _clients = value;
+                OnPropertyChanged(nameof(Clients));
+            }
+
+        }
+
+        public ObservableCollection<ClientProducts> ClientProducts
         {
             get { return _serviceClients; }
             set
             {
                 _serviceClients = value;
-                OnPropertyChanged(nameof(Clients));
+                OnPropertyChanged(nameof(ClientProducts));
             }
         }
 
@@ -51,7 +66,7 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
-        public ClientProducts? SelectedClient
+        public Client? SelectedClient
         {
             get { return _selectedClient; }
             set
@@ -60,6 +75,18 @@ namespace iCustomerCareSystem.ViewModels
                 {
                     _selectedClient = value;
                     OnPropertyChanged(nameof(SelectedClient));
+                }
+            }
+        }
+        public ClientProducts? SelectedClientProduct
+        {
+            get { return _selectedClientProduct; }
+            set
+            {
+                if (value != null)
+                {
+                    _selectedClientProduct = value;
+                    OnPropertyChanged(nameof(SelectedClientProduct));
                 }
             }
         }
@@ -91,6 +118,16 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
+        public BitmapImage ImageSource
+        {
+            get { return _imageSource; }
+            set
+            {
+                _imageSource = value;
+                OnPropertyChanged(nameof(ImageSource));
+            }
+        }
+
         #endregion
 
         #region Behaviors  
@@ -114,6 +151,7 @@ namespace iCustomerCareSystem.ViewModels
             AddNewClientCommand = new DelegateCommand(AddNewClient);
             EditClientCommand = new DelegateCommand(EditClient);
             PrintServiceEntryCommand = new DelegateCommand(PrintServiceEntry);
+            LoadLogo();
         }
 
         #endregion
@@ -123,14 +161,14 @@ namespace iCustomerCareSystem.ViewModels
         private async void InitializeAsync()
         {
             await LoadDataAsync();
-            FilteredClients = CollectionViewSource.GetDefaultView(Clients);
+            FilteredClients = CollectionViewSource.GetDefaultView(ClientProducts);
         }
 
         private async Task LoadDataAsync()
         {
             try
             {
-                Clients = new ObservableCollection<ClientProducts>(
+                ClientProducts = new ObservableCollection<ClientProducts>(
                     await _clientsDbContext.ClientProducts
                         .Where(x => x.DateOut == null)
                         .Include(c => c.Client)
@@ -139,12 +177,9 @@ namespace iCustomerCareSystem.ViewModels
                         .ToListAsync()
                 );
 
-                HistoricalClients = new ObservableCollection<ClientProducts>(
-                    await _clientsDbContext.ClientProducts
-                        .Where(x => x.DateOut != null)
-                        .Include(c => c.Client)
-                        .Include(c => c.OperationType)
-                        .Include(c => c.ProductType)
+                Clients = new ObservableCollection<Client>(
+                    await _clientsDbContext.Clients
+                        .OrderBy(x => x.FirstName)
                         .ToListAsync()
                 );
 
@@ -157,17 +192,17 @@ namespace iCustomerCareSystem.ViewModels
 
         private void RefreshCollectionView()
         {
-            if (Clients == null)
+            if (ClientProducts == null)
                 return;
 
             if (string.IsNullOrWhiteSpace(FilterText))
             {
-                FilteredClients = CollectionViewSource.GetDefaultView(Clients);
+                FilteredClients = CollectionViewSource.GetDefaultView(ClientProducts);
                 return;
             }
 
             var filtered = new ObservableCollection<ClientProducts>(
-                Clients.Where(c => DoesClientMatchFilterText(c, FilterText))
+                ClientProducts.Where(c => DoesClientMatchFilterText(c, FilterText))
             );
 
             FilteredClients = CollectionViewSource.GetDefaultView(filtered);
@@ -206,22 +241,35 @@ namespace iCustomerCareSystem.ViewModels
 
         private void EditClient()
         {
-            var addEditViewModel = new AddOrEditClientViewModel(_clientsDbContext, SelectedClient);
-            AddOrEditClientView childWindow = new AddOrEditClientView(addEditViewModel);
+            var addEditViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClientProduct);
+            AddOrEditProductView childWindow = new AddOrEditProductView(addEditViewModel);
             childWindow.Owner = Application.Current.MainWindow;
+            childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             addEditViewModel.ChildWindow = childWindow;
             addEditViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
             childWindow.ShowDialog();
         }
 
-        private void HandleClientAddedSuccessfully(object sender, EventArgs e)
+        private void HandleClientAddedSuccessfully(object? sender, EventArgs e)
         {
-           RefreshMainWindowData();
+            RefreshMainWindowData();
         }
 
-        private async void RefreshMainWindowData()
+        private void RefreshMainWindowData()
         {
             InitializeAsync();
+        }
+        public void LoadLogo()
+        {
+            var path = System.Configuration.ConfigurationManager.ConnectionStrings["Logo"].ConnectionString;
+            // Load the image from the file path
+            BitmapImage image = new BitmapImage();
+            image.BeginInit();
+            image.UriSource = new Uri(path);
+            image.EndInit();
+
+            // Set the ImageSource property
+            ImageSource = image;
         }
 
         private void PrintServiceEntry()
