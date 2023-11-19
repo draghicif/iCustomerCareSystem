@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:iCustomerCareSystem" 
         xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" 
         xmlns:c="clr-namespace:iCustomerCareSystem.Converters"
         mc:Ignorable="d"
@@ -16,40 +15,200 @@
     <Window.Resources>
         <c:BooleanToYesNoConverter x:Key="BooleanToYesNoConverter"/>
         <c:ConcatenateStringsConverter x:Key="ConcatenateStringsConverter"/>
+        <Style x:Key="CustomGroupBoxStyle" TargetType="GroupBox">
+            <!-- Set font properties for the GroupBox content -->
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="ContentTextBlockStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
     </Window.Resources>
 
-    <TabControl>
-        <TabItem Header="Clienti activi in service">
-            <Grid Margin="5">
+    <Grid>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-                <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+        <Menu HorizontalAlignment="Right">
+            <MenuItem Header="Nomenclatoare" Command="{Binding Option1Command}">
+                <MenuItem Header="Tip Echipamente" />
+                <MenuItem Header="Lista Operatiuni Manopera" />
+            </MenuItem>
+        </Menu>
 
-                    <StackPanel Orientation="Horizontal">
-                        <Label>Cauta Client:</Label>
-                        <TextBox x:Name="FilterTextBox" Width="250px" VerticalAlignment="Center"
-                         Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
-                    </StackPanel>
+        <Image Grid.Row="1" Source="{Binding ImageSource}" Margin="0" Height="75"/>
 
-                    <Button Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}" Grid.ColumnSpan="2" Margin="372,0,297,0"/>
+        <TabControl Grid.Row="2">
 
-                </Grid>
+            <TabItem Header="Produse in service">
+                <Grid>
 
-                <GroupBox Grid.Row="1" Margin="5" Header="Lista clienti:">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                    <DataGrid ItemsSource="{Binding FilteredClients}" 
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Cauta Produs:"/>
+                            <TextBox x:Name="FilterTextBox" Width="245" VerticalAlignment="Center"
+                                    Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                    </Grid>
+
+                    <GroupBox Grid.Row="1" Margin="5" Header="Produse in service:" Style="{StaticResource CustomGroupBoxStyle}">
+
+                        <DataGrid ItemsSource="{Binding FilteredClients}" 
                               AutoGenerateColumns="False" 
                               IsReadOnly="True" 
                               SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
                               HorizontalScrollBarVisibility="Auto">
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                            </DataGrid.ColumnHeaderStyle>
+
+                            <DataGrid.CellStyle>
+                                <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
+                            </DataGrid.CellStyle>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Vizualizare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Editare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nume" Binding="{Binding ClientProducts.Client.FirstName}" Width="*"/>
+                                <DataGridTextColumn Header="Prenume" Binding="{Binding ClientProducts.Client.LastName}" Width="*"/>
+                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding ClientProducts.Client.Telephone}" Width="*"/>
+                                <DataGridTextColumn Header="Echipament" Width="*">
+                                    <!--<DataGridTextColumn.Binding>
+                                    <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
+                                        <Binding Path="ClientProduct.ProductType.Name" />
+                                        <Binding Path="ClientProduct.Name" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>-->
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
+                                <DataGridTemplateColumn  Header="Data Intrare Service" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DateIn, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
+                                <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </GroupBox>
+
+
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Clienti">
+
+                <Grid>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Cauta Client:"/>
+                            <TextBox Width="245" VerticalAlignment="Center"
+                                     Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <Button Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}" Margin="403,0,10,0"/>
+
+                    </Grid>
+
+                    <GroupBox Grid.Row="1" Margin="5" Header="Produse in service:" Style="{StaticResource CustomGroupBoxStyle}">
+
+                        <DataGrid ItemsSource="{Binding FilteredClients}" 
+                              AutoGenerateColumns="False" 
+                              IsReadOnly="True" 
+                              SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
+                              HorizontalScrollBarVisibility="Auto">
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                            </DataGrid.ColumnHeaderStyle>
+
+                            <DataGrid.CellStyle>
+                                <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
+                            </DataGrid.CellStyle>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Adauga produs in service" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Editare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nume" Binding="{Binding ClientProducts.Client.FirstName}" Width="*"/>
+                                <DataGridTextColumn Header="Prenume" Binding="{Binding ClientProducts.Client.LastName}" Width="*"/>
+                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding ClientProducts.Client.Telephone}" Width="*"/>
+                            </DataGrid.Columns>
+
+                        </DataGrid>
+
+                    </GroupBox>
+
+                </Grid>
+
+            </TabItem>
+
+            <TabItem Header="Clienti istoric">
+
+                <GroupBox Grid.Row="1" Margin="5" Header="Clienti istoric:"  Style="{StaticResource CustomGroupBoxStyle}">
+
+                    <!--<DataGrid ItemsSource="{Binding HistoricalClients}" AutoGenerateColumns="False" IsReadOnly="True">
 
                         <DataGrid.ContextMenu>
                             <ContextMenu>
@@ -58,77 +217,49 @@
                             </ContextMenu>
                         </DataGrid.ContextMenu>
 
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                        </DataGrid.ColumnHeaderStyle>
+
+                        <DataGrid.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
+                        </DataGrid.CellStyle>
+
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Nume" Binding="{Binding Client.FirstName}" Width="*"/>
-                            <DataGridTextColumn Header="Prenume" Binding="{Binding Client.LastName}" Width="*"/>
-                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Client.Telephone}" Width="*"/>
+                            <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="*"/>
+                            <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="*"/>
+                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="*"/>
                             <DataGridTextColumn Header="Echipament" Width="*">
-                                <!--<DataGridTextColumn.Binding>
-                                    <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
-                                        <Binding Path="ClientProduct.ProductType.Name" />
-                                        <Binding Path="ClientProduct.Name" />
-                                    </MultiBinding>
-                                </DataGridTextColumn.Binding>-->
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
-                            <DataGridTemplateColumn  Header="Data Intrare Service" Width="*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding DateIn, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
-                            <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                </GroupBox>
-
-
-            </Grid>
-        </TabItem>
-
-        <TabItem Header="Clienti istoric">
-
-            <GroupBox Grid.Row="1" Margin="5" Header="Clienti istoric:">
-
-                <DataGrid ItemsSource="{Binding HistoricalClients}" AutoGenerateColumns="False" IsReadOnly="True">
-
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Editare Client" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                            <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
-
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="*"/>
-                        <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="*"/>
-                        <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="*"/>
-                        <DataGridTextColumn Header="Echipament" Width="*">
-                            <!--<DataGridTextColumn.Binding>
+                                -->
+                    <!--<DataGridTextColumn.Binding>
                                 <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
                                     <Binding Path="ClientProduct.ProductType.Name" />
                                     <Binding Path="ClientProduct.Name" />
                                 </MultiBinding>
                             </DataGridTextColumn.Binding>-->
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
-                        <DataGridTemplateColumn  Header="Data Iesire Service" Width="*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding DateOut, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
+                    <!--
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
+                            <DataGridTemplateColumn  Header="Data Iesire Service" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DateOut, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>-->
 
-            </GroupBox>
+                </GroupBox>
 
-        </TabItem>
+            </TabItem>
 
-    </TabControl>
+            <TabItem Header="Garantii manopera active:">
+
+            </TabItem>
+
+        </TabControl>
+
+    </Grid>
 
 </Window>

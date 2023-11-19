@@ -1,4 +1,5 @@
-﻿using System;
+﻿using iCustomerCareSystem.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,13 +16,14 @@ using System.Windows.Shapes;
 namespace iCustomerCareSystem.Views
 {
     /// <summary>
-    /// Interaction logic for AddOrEditClientVIew.xaml
+    /// Interaction logic for AddOrEditClientView.xaml
     /// </summary>
-    public partial class AddOrEditClientVIew : Window
+    public partial class AddOrEditProductView : Window
     {
-        public AddOrEditClientVIew()
+        public AddOrEditProductView(AddOrEditProductViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
         }
     }
 }
