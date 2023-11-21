@@ -7,10 +7,6 @@
         mc:Ignorable="d"
         Title="AddOrEditClientVIew" Height="250" Width="375">
 
-    <Window.DataContext>
-        <vm:AddOrEditClientViewModel/>
-    </Window.DataContext>
-
     <Window.Resources>
         <Style x:Key="CustomGroupBoxStyle" TargetType="GroupBox">
             <Setter Property="FontWeight" Value="Bold"/>

@@ -9,7 +9,6 @@ namespace iCustomerCareSystem.Data
     {
         public DbSet<ClientProducts> ClientProducts { get; set; }
         public DbSet<Client> Clients { get; set; }
-        public DbSet<OperationType> OperationType { get; set; }
         public DbSet<ProductType> ProductType { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -43,11 +42,6 @@ namespace iCustomerCareSystem.Data
                 .HasOne(cp => cp.Client)
                 .WithMany(c => c.ClientProducts)
                 .HasForeignKey(cp => cp.ClientId);
-
-            modelBuilder.Entity<ClientProducts>()
-                .HasOne(cp => cp.OperationType)
-                .WithMany(ot => ot.ClientProducts)
-                .HasForeignKey(cp => cp.OperationTypeId);
 
             modelBuilder.Entity<ClientProducts>()
                 .HasOne(cp => cp.ProductType)

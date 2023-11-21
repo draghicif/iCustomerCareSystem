@@ -1,0 +1,115 @@
+﻿<Window x:Class="iCustomerCareSystem.Views.EquipmentTypeView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:iCustomerCareSystem.Views"
+        mc:Ignorable="d"
+        Title="EquipmentTypeView" Height="300" Width="350">
+
+    <Window.Resources>
+        <Style x:Key="CustomGroupBoxStyle" TargetType="GroupBox">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style TargetType="Label">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="FontWeight" Value="Regular"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+           
+                    <StackPanel Orientation="Horizontal">
+                        <Label Width="Auto">Nume:</Label>
+                        <TextBox x:Name="FilterTextBox" Width="100px" VerticalAlignment="Center"
+                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Label Width="Auto">Descriere:</Label>
+                        <TextBox Width="100px" VerticalAlignment="Center"
+                            Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                        
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
+            <Button Content="Adauga Tip Nou" Command="{Binding AddCommand}" IsEnabled="{Binding IsAddElementEnabled}" Width="100"/>
+        </StackPanel>
+        
+        <GroupBox Grid.Row="2" Margin="5" Header="Tipuri Produse:" Style="{StaticResource CustomGroupBoxStyle}">
+
+            <DataGrid ItemsSource="{Binding ProductTypes}" 
+              AutoGenerateColumns="False" 
+              IsReadOnly="True" 
+              SelectedItem="{Binding SelectedProductType, Mode=TwoWay}"
+              HorizontalScrollBarVisibility="Auto">
+
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                </DataGrid.ColumnHeaderStyle>
+
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Stergere" Command="{Binding DeleteItemCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="Nume" Binding="{Binding Name}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Regular"/>
+                                <Setter Property="FontSize" Value="12"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Desciere" Binding="{Binding Description}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Regular"/>
+                                <Setter Property="FontSize" Value="12"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                </DataGrid.Columns>
+
+            </DataGrid>
+
+        </GroupBox>
+
+        <StackPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
+            <Button Content="Inchide" Command="{Binding CloseWindowCommand}" Width="100"/>
+        </StackPanel>
+
+    </Grid>
+
+</Window>

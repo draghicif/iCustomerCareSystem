@@ -6,7 +6,8 @@
         xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" 
         xmlns:c="clr-namespace:iCustomerCareSystem.Converters"
         mc:Ignorable="d"
-        Title="iCustomerCareSystem" Height="450" Width="1000">
+        Title="iCustomerCareSystem" Height="450" Width="1000"
+        WindowState="Maximized">
 
     <Window.DataContext>
         <vm:MainWindowViewModel/>
@@ -39,11 +40,6 @@
             <Setter Property="FontWeight" Value="Regular"/>
             <Setter Property="FontSize" Value="12"/>
         </Style>
-
-        <Style x:Key="ContentTextBlockStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="FontWeight" Value="Regular"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -56,8 +52,7 @@
 
         <Menu HorizontalAlignment="Right">
             <MenuItem Header="Nomenclatoare" Command="{Binding Option1Command}">
-                <MenuItem Header="Tip Echipamente" />
-                <MenuItem Header="Lista Operatiuni Manopera" />
+                <MenuItem Header="Tip Echipamente" Command="{Binding OpenProductTypesNomenclatorCommand}"/>
             </MenuItem>
         </Menu>
 
@@ -89,50 +84,101 @@
 
                     <GroupBox Grid.Row="1" Margin="5" Header="Produse in service:" Style="{StaticResource CustomGroupBoxStyle}">
 
-                        <DataGrid ItemsSource="{Binding FilteredClients}" 
+                        <DataGrid ItemsSource="{Binding FilteredClientProducts}" 
                               AutoGenerateColumns="False" 
                               IsReadOnly="True" 
-                              SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
+                              SelectedItem="{Binding SelectedClientProduct, Mode=TwoWay}"
                               HorizontalScrollBarVisibility="Auto">
 
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
                             </DataGrid.ColumnHeaderStyle>
-
-                            <DataGrid.CellStyle>
-                                <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
-                            </DataGrid.CellStyle>
-
+                            
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Vizualizare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                                    <MenuItem Header="Editare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Editare" Command="{Binding EditClientProductCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                     <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Nume" Binding="{Binding ClientProducts.Client.FirstName}" Width="*"/>
-                                <DataGridTextColumn Header="Prenume" Binding="{Binding ClientProducts.Client.LastName}" Width="*"/>
-                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding ClientProducts.Client.Telephone}" Width="*"/>
-                                <DataGridTextColumn Header="Echipament" Width="*">
-                                    <!--<DataGridTextColumn.Binding>
-                                    <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
-                                        <Binding Path="ClientProduct.ProductType.Name" />
-                                        <Binding Path="ClientProduct.Name" />
-                                    </MultiBinding>
-                                </DataGridTextColumn.Binding>-->
+                                <DataGridTextColumn Header="Nume" Binding="{Binding Client.FirstName}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
-                                <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
+                                <DataGridTextColumn Header="Prenume" Binding="{Binding Client.LastName}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Client.Telephone}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Echipament" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.Binding>
+                                        <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
+                                            <Binding Path="ProductType.Name" />
+                                            <Binding Path="ProductName" />
+                                        </MultiBinding>
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Operatiune Service" Binding="{Binding ServiceOperation}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTemplateColumn  Header="Data Intrare Service" Width="*">
+
+                                    <DataGridTemplateColumn.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTemplateColumn.CellStyle>
+
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding DateIn, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
-                                <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="*"/>
+                                <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Revenire/Garantie" Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
 
@@ -169,7 +215,7 @@
 
                     <GroupBox Grid.Row="1" Margin="5" Header="Produse in service:" Style="{StaticResource CustomGroupBoxStyle}">
 
-                        <DataGrid ItemsSource="{Binding FilteredClients}" 
+                        <DataGrid ItemsSource="{Binding Clients}" 
                               AutoGenerateColumns="False" 
                               IsReadOnly="True" 
                               SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
@@ -179,21 +225,38 @@
                                 <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
                             </DataGrid.ColumnHeaderStyle>
 
-                            <DataGrid.CellStyle>
-                                <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
-                            </DataGrid.CellStyle>
-
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Adauga produs in service" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Adauga produs in service" Command="{Binding AddNewClientProductCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                     <MenuItem Header="Editare" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Nume" Binding="{Binding ClientProducts.Client.FirstName}" Width="*"/>
-                                <DataGridTextColumn Header="Prenume" Binding="{Binding ClientProducts.Client.LastName}" Width="*"/>
-                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding ClientProducts.Client.Telephone}" Width="*"/>
+                                <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                             </DataGrid.Columns>
 
                         </DataGrid>

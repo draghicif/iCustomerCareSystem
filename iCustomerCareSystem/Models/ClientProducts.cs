@@ -13,8 +13,8 @@ namespace iCustomerCareSystem.Models
         public string ProductConfiguration { get; set; }
         public ProductType ProductType { get; set; }
         public long ProductTypeId { get; set; }
-        public OperationType OperationType { get; set; }
-        public long OperationTypeId { get; set; }
+        public string ServiceOperation { get; set; }
+        public decimal Price { get; set; }
         public string Reason { get; set; }
         public DateTime DateIn { get; set; }
         public DateTime? DateOut { get; set; }

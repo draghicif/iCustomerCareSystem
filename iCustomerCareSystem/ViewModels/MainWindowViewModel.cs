@@ -91,7 +91,7 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
-        public ICollectionView FilteredClients
+        public ICollectionView FilteredClientProducts
         {
             get => _filteredClients;
             set
@@ -99,7 +99,7 @@ namespace iCustomerCareSystem.ViewModels
                 if (_filteredClients != value)
                 {
                     _filteredClients = value;
-                    OnPropertyChanged(nameof(FilteredClients));
+                    OnPropertyChanged(nameof(FilteredClientProducts));
                 }
             }
         }
@@ -134,7 +134,10 @@ namespace iCustomerCareSystem.ViewModels
 
         public ICommand AddNewClientCommand { get; private set; }
         public ICommand EditClientCommand { get; private set; }
+        public ICommand AddNewClientProductCommand { get; private set; }
+        public ICommand EditClientProductCommand { get; private set; }
         public ICommand PrintServiceEntryCommand { get; private set; }
+        public ICommand OpenProductTypesNomenclatorCommand { get; private set; }
 
         #endregion
 
@@ -148,9 +151,14 @@ namespace iCustomerCareSystem.ViewModels
             }
 
             InitializeAsync();
+
             AddNewClientCommand = new DelegateCommand(AddNewClient);
             EditClientCommand = new DelegateCommand(EditClient);
+
+            AddNewClientProductCommand = new DelegateCommand(AddNewClientProduct);
+            EditClientProductCommand = new DelegateCommand(EditClientProduct);
             PrintServiceEntryCommand = new DelegateCommand(PrintServiceEntry);
+            OpenProductTypesNomenclatorCommand = new DelegateCommand(OpenProductTypesNomenclator);
             LoadLogo();
         }
 
@@ -161,7 +169,7 @@ namespace iCustomerCareSystem.ViewModels
         private async void InitializeAsync()
         {
             await LoadDataAsync();
-            FilteredClients = CollectionViewSource.GetDefaultView(ClientProducts);
+            FilteredClientProducts = CollectionViewSource.GetDefaultView(ClientProducts);
         }
 
         private async Task LoadDataAsync()
@@ -172,7 +180,6 @@ namespace iCustomerCareSystem.ViewModels
                     await _clientsDbContext.ClientProducts
                         .Where(x => x.DateOut == null)
                         .Include(c => c.Client)
-                        .Include(c => c.OperationType)
                         .Include(c => c.ProductType)
                         .ToListAsync()
                 );
@@ -197,7 +204,7 @@ namespace iCustomerCareSystem.ViewModels
 
             if (string.IsNullOrWhiteSpace(FilterText))
             {
-                FilteredClients = CollectionViewSource.GetDefaultView(ClientProducts);
+                FilteredClientProducts = CollectionViewSource.GetDefaultView(ClientProducts);
                 return;
             }
 
@@ -205,33 +212,37 @@ namespace iCustomerCareSystem.ViewModels
                 ClientProducts.Where(c => DoesClientMatchFilterText(c, FilterText))
             );
 
-            FilteredClients = CollectionViewSource.GetDefaultView(filtered);
+            FilteredClientProducts = CollectionViewSource.GetDefaultView(filtered);
         }
 
         private bool DoesClientMatchFilterText(ClientProducts clientProduct, string filterText)
         {
             var filterCriteria = new List<string> { "FirstName", "LastName", "Telephone" };
             var searchText = filterText.ToLower();
-            foreach (var property in clientProduct.GetType().GetProperties())
+            foreach (var property in clientProduct.Client.GetType().GetProperties())
             {
-                if (property.Name == "Client")
+                if (filterCriteria.Contains(property.Name))
                 {
-                    var refClient = property.GetType().GetProperties();
-                    foreach (var clientProperty in refClient)
-                    {
-                        if (filterCriteria.Contains(clientProperty.Name))
-                        {
-                            var value = property.GetValue(clientProduct)?.ToString()?.ToLower();
-                            if (value != null && value.Contains(searchText))
-                                return true;
-                        }
-                    }
+                    var value = property.GetValue(clientProduct.Client)?.ToString()?.ToLower();
+                    if (value != null && value.Contains(searchText))
+                        return true;
                 }
             }
             return false;
         }
 
         #endregion
+
+        private void AddNewClientProduct()
+        {
+            var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClient);
+            AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
+            childWindow.Owner = Application.Current.MainWindow;
+            childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            addEditProductViewModel.ChildWindow = childWindow;
+            addEditProductViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
+            childWindow.ShowDialog();
+        }
 
         private void AddNewClient()
         {
@@ -241,12 +252,34 @@ namespace iCustomerCareSystem.ViewModels
 
         private void EditClient()
         {
-            var addEditViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClientProduct);
-            AddOrEditProductView childWindow = new AddOrEditProductView(addEditViewModel);
+            var addEditViewModel = new AddOrEditClientViewModel(_clientsDbContext, SelectedClient);
+            AddOrEditClientVIew childWindow = new AddOrEditClientVIew(addEditViewModel);
             childWindow.Owner = Application.Current.MainWindow;
             childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             addEditViewModel.ChildWindow = childWindow;
             addEditViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
+            childWindow.ShowDialog();
+        }
+
+        private void EditClientProduct()
+        {
+            var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClientProduct);
+            AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
+            childWindow.Owner = Application.Current.MainWindow;
+            childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            addEditProductViewModel.ChildWindow = childWindow;
+            addEditProductViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
+            childWindow.ShowDialog();
+        }
+
+        private void OpenProductTypesNomenclator()
+        {
+            var openProductTypeNomenclatorViewModel = new EquipmentTypeViewModel(_clientsDbContext);
+            EquipmentTypeView childWindow = new EquipmentTypeView(openProductTypeNomenclatorViewModel);
+            childWindow.Owner = Application.Current.MainWindow;
+            childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            openProductTypeNomenclatorViewModel.ChildWindow = childWindow;
+            openProductTypeNomenclatorViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
             childWindow.ShowDialog();
         }
 

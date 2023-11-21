@@ -1,27 +1,32 @@
 ﻿using iCustomerCareSystem.Data;
 using iCustomerCareSystem.Models;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Prism.Commands;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 
 namespace iCustomerCareSystem.ViewModels
 {
     public class AddOrEditProductViewModel : BasePopupViewModel, INotifyPropertyChanged
     {
-        private ClientProducts _selectedClient;
+        private ClientProducts _selectedClientProduct;
+        private Client? _selectedClient;
         private readonly ClientsDbContext _clientsDbContext;
 
         private ObservableCollection<ProductType> _productTypes;
-        private ObservableCollection<OperationType> _operationTypes;
         private ProductType _selectedProductType;
-        private OperationType _selectedOperationType;
+
+        public Client? SelectedClient
+        {
+            get { return _selectedClient; }
+            set
+            {
+                _selectedClient = value;
+                OnPropertyChanged(nameof(SelectedClient));
+            }
+        }
 
         public ProductType SelectedProductType
         {
@@ -30,16 +35,6 @@ namespace iCustomerCareSystem.ViewModels
             {
                 _selectedProductType = value;
                 OnPropertyChanged(nameof(SelectedProductType));
-            }
-        }
-
-        public OperationType SelectedOperationType
-        {
-            get { return _selectedOperationType; }
-            set
-            {
-                _selectedOperationType = value;
-                OnPropertyChanged(nameof(SelectedOperationType));
             }
         }
 
@@ -53,24 +48,15 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
-        public ObservableCollection<OperationType> OperationTypes
+        public ClientProducts SelectedClientProduct
         {
-            get { return _operationTypes; }
-            set
-            {
-                _operationTypes = value;
-                OnPropertyChanged(nameof(OperationTypes));
-            }
-        }
-        public ClientProducts SelectedClient
-        {
-            get { return _selectedClient; }
+            get { return _selectedClientProduct; }
             set
             {
                 if (value != null)
                 {
-                    _selectedClient = value;
-                    OnPropertyChanged(nameof(SelectedClient));
+                    _selectedClientProduct = value;
+                    OnPropertyChanged(nameof(SelectedClientProduct));
                 }
             }
         }
@@ -81,26 +67,34 @@ namespace iCustomerCareSystem.ViewModels
 
         public event EventHandler ClientAddedSuccessfully;
 
-        public AddOrEditProductViewModel(ClientsDbContext clientsDbContext, ClientProducts? selectedClient = null)
+        public AddOrEditProductViewModel(ClientsDbContext clientsDbContext, ClientProducts? selectedClientProduct = null)
         {
             _clientsDbContext = clientsDbContext;
-            _selectedClient = selectedClient ?? new ClientProducts();
+            _selectedClientProduct = selectedClientProduct;
             ProductTypes = new ObservableCollection<ProductType>(clientsDbContext.ProductType);
-            OperationTypes = new ObservableCollection<OperationType>(clientsDbContext.OperationType);
+            SaveCommand = new DelegateCommand(async () => await SaveClientAsync());
+        }
+        public AddOrEditProductViewModel(ClientsDbContext clientsDbContext, Client selectedClient)
+        {
+            _clientsDbContext = clientsDbContext;
+            _selectedClient = selectedClient;
+            _selectedClientProduct = new ClientProducts();
+            _selectedClientProduct.Client = _selectedClient;
+            ProductTypes = new ObservableCollection<ProductType>(clientsDbContext.ProductType);
             SaveCommand = new DelegateCommand(async () => await SaveClientAsync());
         }
 
         private async Task SaveClientAsync()
         {
-            if (SelectedClient != null)
+            if (SelectedClientProduct != null)
             {
-                if (_selectedClient.ClientId == 0)
+                if (_selectedClientProduct.ClientId == 0)
                 {
-                    _clientsDbContext.ClientProducts.Add(SelectedClient);
+                    _clientsDbContext.ClientProducts.Add(SelectedClientProduct);
                 }
                 else
                 {
-                    _clientsDbContext.ClientProducts.Update(SelectedClient);
+                    _clientsDbContext.ClientProducts.Update(SelectedClientProduct);
                 }
 
                 await SaveClientAsync(_clientsDbContext);
@@ -110,7 +104,7 @@ namespace iCustomerCareSystem.ViewModels
         private async Task SaveClientAsync(ClientsDbContext clientsDbContext)
         {
             bool isSuccess = false;
-            SelectedClient.DateIn = DateTime.Now;
+            SelectedClientProduct.DateIn = DateTime.Now;
             try
             {
                 await clientsDbContext.SaveChangesAsync();
