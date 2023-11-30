@@ -1,7 +1,5 @@
-﻿using iCustomerCareSystem.Core;
-using iCustomerCareSystem.Models;
+﻿using iCustomerCareSystem.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace iCustomerCareSystem.Data
 {
@@ -10,6 +8,7 @@ namespace iCustomerCareSystem.Data
         public DbSet<ClientProducts> ClientProducts { get; set; }
         public DbSet<Client> Clients { get; set; }
         public DbSet<ProductType> ProductType { get; set; }
+        public DbSet<ProductStatus> ProductStatus { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -47,6 +46,11 @@ namespace iCustomerCareSystem.Data
                 .HasOne(cp => cp.ProductType)
                 .WithMany(pt => pt.ClientProducts)
                 .HasForeignKey(cp => cp.ProductTypeId);
+
+            modelBuilder.Entity<ClientProducts>()
+                .HasOne(cp => cp.ProductStatus)
+                .WithMany(pt => pt.ClientProducts)
+                .HasForeignKey(cp => cp.ProductStatusId);
 
             modelBuilder.Entity<ClientProducts>()
                 .HasOne(cp => cp.Client)

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:iCustomerCareSystem.ViewModels" 
         xmlns:c="clr-namespace:iCustomerCareSystem.Converters"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="iCustomerCareSystem" Height="450" Width="1000"
         WindowState="Maximized">
@@ -39,6 +40,7 @@
         <Style x:Key="DataGridColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
             <Setter Property="FontWeight" Value="Regular"/>
             <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
     </Window.Resources>
 
@@ -88,20 +90,80 @@
                               AutoGenerateColumns="False" 
                               IsReadOnly="True" 
                               SelectedItem="{Binding SelectedClientProduct, Mode=TwoWay}"
-                              HorizontalScrollBarVisibility="Auto">
+                              HorizontalScrollBarVisibility="Auto"
+                                  SelectionMode="Single">
+
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="MouseDoubleClick">
+                                    <i:InvokeCommandAction Command="{Binding EditClientProductCommand}"
+                                   CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
 
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
                             </DataGrid.ColumnHeaderStyle>
-                            
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White" />
+
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ProductStatus.ProductStatusId}" Value="1">
+                                            <Setter Property="Background" Value="IndianRed" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ProductStatus.ProductStatusId}" Value="2">
+                                            <Setter Property="Background" Value="LightYellow" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ProductStatus.ProductStatusId}" Value="3">
+                                            <Setter Property="Background" Value="LightSeaGreen" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ProductStatus.ProductStatusId}" Value="4">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+
+                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGridRow}}" Value="True">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                            <Setter Property="BorderBrush" Value="Black"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                        </DataTrigger>
+
+                                    </Style.Triggers>
+
+                                </Style>
+
+                            </DataGrid.RowStyle>
+
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGridRow}}" Value="True">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
+                                    <MenuItem Header="Schimba Status" Command="{Binding ChangeProductStatusCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                     <MenuItem Header="Editare" Command="{Binding EditClientProductCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                                    <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Creaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 
                             <DataGrid.Columns>
+                                <DataGridTextColumn Header="Numar Fisa Service" Binding="{Binding ClientProductId}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTextColumn Header="Nume" Binding="{Binding Client.FirstName}" Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
@@ -163,11 +225,13 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
+
                                 <DataGridTextColumn Header="Taxa Urgenta" Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontWeight" Value="Regular"/>
                                             <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -176,6 +240,16 @@
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontWeight" Value="Regular"/>
                                             <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Status service" Binding="{Binding ProductStatus.StatusCode}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
@@ -209,7 +283,7 @@
                                      Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
-                        <Button Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}" Margin="403,0,10,0"/>
+                        <Button Grid.Column="1" Content="Adauga Client Nou" Command="{Binding AddNewClientCommand}" Margin="5"/>
 
                     </Grid>
 
@@ -220,6 +294,13 @@
                               IsReadOnly="True" 
                               SelectedItem="{Binding SelectedClient, Mode=TwoWay}"
                               HorizontalScrollBarVisibility="Auto">
+
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="MouseDoubleClick">
+                                    <i:InvokeCommandAction Command="{Binding EditClientCommand}"
+                                        CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
 
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
@@ -267,57 +348,274 @@
 
             </TabItem>
 
-            <TabItem Header="Clienti istoric">
+            <TabItem Header="Istoric Service">
 
-                <GroupBox Grid.Row="1" Margin="5" Header="Clienti istoric:"  Style="{StaticResource CustomGroupBoxStyle}">
+                <StackPanel Orientation="Vertical" Margin="5">
 
-                    <!--<DataGrid ItemsSource="{Binding HistoricalClients}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <StackPanel Orientation="Horizontal" Margin="5">
 
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Editare Client" Command="{Binding EditClientCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                                <MenuItem Header="Printeaza fisa service" Command="{Binding PrintServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
+                        <Label Content="Cauta Nume Client:"/>
+                        <TextBox Width="245" 
+                                 VerticalAlignment="Center"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
-                        </DataGrid.ColumnHeaderStyle>
+                        <Button Content="Cauta" Command="{Binding SearchHistoricalProductCommand}" Margin="5"/>
 
-                        <DataGrid.CellStyle>
-                            <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource ContentTextBlockStyle}"/>
-                        </DataGrid.CellStyle>
+                    </StackPanel>
 
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Nume" Binding="{Binding FirstName}" Width="*"/>
-                            <DataGridTextColumn Header="Prenume" Binding="{Binding LastName}" Width="*"/>
-                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Telephone}" Width="*"/>
-                            <DataGridTextColumn Header="Echipament" Width="*">
-                                -->
-                    <!--<DataGridTextColumn.Binding>
-                                <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
-                                    <Binding Path="ClientProduct.ProductType.Name" />
-                                    <Binding Path="ClientProduct.Name" />
-                                </MultiBinding>
-                            </DataGridTextColumn.Binding>-->
-                    <!--
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Operatiune Service" Binding="{Binding OperationType.Name}" Width="*"/>
-                            <DataGridTemplateColumn  Header="Data Iesire Service" Width="*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding DateOut, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>-->
+                    <GroupBox Grid.Row="1" Margin="5" Header="Istoric Service:"  Style="{StaticResource CustomGroupBoxStyle}">
 
-                </GroupBox>
+                        <DataGrid ItemsSource="{Binding HistoricalClients}" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="True" 
+                                  SelectedItem="{Binding SelectedHistoricalClient, Mode=TwoWay}"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  SelectionMode="Single">                            
+
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                            </DataGrid.ColumnHeaderStyle>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Creaza fisa noua deservice" Command="{Binding PrintnNewServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Numar Fisa Service" Binding="{Binding ClientProductId}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Date Client" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.Binding>
+                                        <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
+                                            <Binding Path="Client.FirstName" />
+                                            <Binding Path="Client.LastName" />
+                                            <Binding Path="Client.Telephone" />
+                                        </MultiBinding>
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Date Echipament" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                    <DataGridTextColumn.Binding>
+                                        <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
+                                            <Binding Path="ProductType.Name" />
+                                            <Binding Path="ProductName" />
+                                            <Binding Path="ProductConfiguration" />
+                                        </MultiBinding>
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Operatiune Service" Binding="{Binding ServiceOperation}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn  Header="Data Iesre Service" Width="*">
+
+                                    <DataGridTemplateColumn.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                        </Style>
+                                    </DataGridTemplateColumn.CellStyle>
+
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DateOut, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Cost Service" Binding="{Binding Price}" Width="*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Regular"/>
+                                            <Setter Property="FontSize" Value="12"/>
+                                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </GroupBox>
+                    
+                </StackPanel>
 
             </TabItem>
 
             <TabItem Header="Garantii manopera active:">
+
+                <GroupBox Grid.Row="1" 
+                          Margin="5" 
+                          Header="Produse:" 
+                          Style="{StaticResource CustomGroupBoxStyle}">
+
+                    <DataGrid ItemsSource="{Binding ActiveInWarrantyProducts}" 
+                              AutoGenerateColumns="False" 
+                              IsReadOnly="True" 
+                              SelectedItem="{Binding SelectedActiveInWarrantyProduct, Mode=TwoWay}"
+                              HorizontalScrollBarVisibility="Auto"
+                              SelectionMode="Single">
+
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDoubleClick">
+                                <i:InvokeCommandAction Command="{Binding ReEntryClientProductCommand}"
+                                                       CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="{x:Type DataGridColumnHeader}" 
+                                   BasedOn="{StaticResource DataGridColumnHeaderStyle}" />
+                        </DataGrid.ColumnHeaderStyle>
+
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Revenire" 
+                                          Command="{Binding ReEntryClientProductCommand}" 
+                                          CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="Numar Fisa Service" 
+                                                Binding="{Binding ClientProductId}"
+                                                Width="*">
+
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Nume" Binding="{Binding Client.FirstName}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Prenume" Binding="{Binding Client.LastName}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Numar TeLefon" Binding="{Binding Client.Telephone}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Echipament" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding Converter="{StaticResource ConcatenateStringsConverter}">
+                                        <Binding Path="ProductType.Name" />
+                                        <Binding Path="ProductName" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Operatiune Service" Binding="{Binding ServiceOperation}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn  Header="Data Intrare Service" Width="*">
+
+                                <DataGridTemplateColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </DataGridTemplateColumn.CellStyle>
+
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DateIn, StringFormat={}{0:MM/dd/yyyy  - HH:mm}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTextColumn Header="Taxa Urgenta" 
+                                                Binding="{Binding IsUrgent, Converter={StaticResource BooleanToYesNoConverter}}" 
+                                                Width="*">
+
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Revenire/Garantie" 
+                                                Binding="{Binding IsReturnInService, Converter={StaticResource BooleanToYesNoConverter}}"
+                                                Width="*">
+
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Regular"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Status service" Binding="{Binding ProductStatus.StatusCode}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </GroupBox>
 
             </TabItem>
 

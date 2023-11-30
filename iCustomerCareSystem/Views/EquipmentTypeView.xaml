@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:iCustomerCareSystem.Views"
         mc:Ignorable="d"
-        Title="EquipmentTypeView" Height="300" Width="350">
+        Title="Tipuri de Echipamente" Height="300" Width="350">
 
     <Window.Resources>
         <Style x:Key="CustomGroupBoxStyle" TargetType="GroupBox">

@@ -13,6 +13,8 @@ namespace iCustomerCareSystem.Models
         public string ProductConfiguration { get; set; }
         public ProductType ProductType { get; set; }
         public long ProductTypeId { get; set; }
+        public ProductStatus ProductStatus { get; set; }
+        public long ProductStatusId { get; set; }
         public string ServiceOperation { get; set; }
         public decimal Price { get; set; }
         public string Reason { get; set; }
@@ -20,5 +22,8 @@ namespace iCustomerCareSystem.Models
         public DateTime? DateOut { get; set; }
         public bool IsUrgent { get; set; }
         public bool IsReturnInService { get; set; }
+        public string? StatusReason { get; set; }       
+        public bool? Fixed { get; set; }
+        public DateTime? WarantyEndDate { get; set; }
     }
 }

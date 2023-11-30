@@ -1,19 +1,28 @@
-﻿using iCustomerCareSystem.Data;
+﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using iCustomerCareSystem.Data;
 using iCustomerCareSystem.Models;
+using iCustomerCareSystem.Views;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Office.Interop.Word;
+using Ookii.Dialogs.Wpf;
+using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Forms;
 using System.Windows.Input;
-using Unity;
-using Prism.Commands;
-using iCustomerCareSystem.Views;
 using System.Windows.Media.Imaging;
+using Unity;
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.Forms.MessageBox;
+using Text = DocumentFormat.OpenXml.Wordprocessing.Text;
 
 namespace iCustomerCareSystem.ViewModels
 {
@@ -26,10 +35,14 @@ namespace iCustomerCareSystem.ViewModels
         private ClientProducts? _selectedClientProduct;
         private ICollectionView _filteredClients;
         private string _filterText;
+        private string _searchText;
         private readonly ClientsDbContext _clientsDbContext;
         private BitmapImage _imageSource;
         private ObservableCollection<Client> _clients;
         private Client? _selectedClient;
+        private ObservableCollection<ClientProducts> _activeInWarrantyProducts;
+        private ClientProducts _selectedActiveInWarrantyProduct;
+        private ClientProducts _selectedHistoricalClient;
 
         #endregion
 
@@ -44,6 +57,35 @@ namespace iCustomerCareSystem.ViewModels
                 OnPropertyChanged(nameof(Clients));
             }
 
+        }
+
+        public ObservableCollection<ClientProducts> ActiveInWarrantyProducts
+        {
+            get { return _activeInWarrantyProducts; }
+            set
+            {
+                _activeInWarrantyProducts = value;
+                OnPropertyChanged(nameof(ActiveInWarrantyProducts));
+            }
+        }
+
+        public ClientProducts SelectedActiveInWarrantyProduct
+        {
+            get { return _selectedActiveInWarrantyProduct; }
+            set
+            {
+                _selectedActiveInWarrantyProduct = value;
+                OnPropertyChanged(nameof(SelectedActiveInWarrantyProduct));
+            }
+        }
+        public ClientProducts SelectedHistoricalClient
+        {
+            get { return _selectedHistoricalClient; }
+            set
+            {
+                _selectedHistoricalClient = value;
+                OnPropertyChanged(nameof(SelectedHistoricalClient));
+            }
         }
 
         public ObservableCollection<ClientProducts> ClientProducts
@@ -118,6 +160,19 @@ namespace iCustomerCareSystem.ViewModels
             }
         }
 
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (_searchText != value)
+                {
+                    _searchText = value;
+                    OnPropertyChanged(SearchText);
+                }
+            }
+        }
+
         public BitmapImage ImageSource
         {
             get { return _imageSource; }
@@ -138,6 +193,9 @@ namespace iCustomerCareSystem.ViewModels
         public ICommand EditClientProductCommand { get; private set; }
         public ICommand PrintServiceEntryCommand { get; private set; }
         public ICommand OpenProductTypesNomenclatorCommand { get; private set; }
+        public ICommand ChangeProductStatusCommand { get; private set; }
+        public ICommand ReEntryClientProductCommand { get; private set; }
+        public ICommand SearchHistoricalProductCommand { get; private set; }
 
         #endregion
 
@@ -145,7 +203,7 @@ namespace iCustomerCareSystem.ViewModels
 
         public MainWindowViewModel()
         {
-            if (Application.Current.Resources["UnityContainer"] is IUnityContainer container)
+            if (System.Windows.Application.Current.Resources["UnityContainer"] is IUnityContainer container)
             {
                 _clientsDbContext = container.Resolve<ClientsDbContext>();
             }
@@ -159,7 +217,49 @@ namespace iCustomerCareSystem.ViewModels
             EditClientProductCommand = new DelegateCommand(EditClientProduct);
             PrintServiceEntryCommand = new DelegateCommand(PrintServiceEntry);
             OpenProductTypesNomenclatorCommand = new DelegateCommand(OpenProductTypesNomenclator);
+            ChangeProductStatusCommand = new DelegateCommand(ChangeProductStatus);
+            ReEntryClientProductCommand = new DelegateCommand(ReEntryClientProduct);
+            SearchHistoricalProductCommand = new DelegateCommand(SearchHistoricalProduct);    
+
             LoadLogo();
+
+            InitializeDefaults();
+        }
+
+        private void InitializeDefaults()
+        {
+            InitializeDefaultSaveFileLocation();
+        }
+
+        private void InitializeDefaultSaveFileLocation()
+        {
+
+            try
+            {
+                var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+                var appSettings = config.AppSettings.Settings;
+                if (appSettings["DefaultSaveClientProductFileLocation"] != null && string.IsNullOrEmpty(appSettings["DefaultSaveClientProductFileLocation"].Value))
+                {
+                    string newValue = string.Empty;
+                    VistaFolderBrowserDialog dialog = new VistaFolderBrowserDialog();
+                    bool? result = dialog.ShowDialog();
+                    if (result == true)
+                    {
+                        newValue = dialog.SelectedPath;
+                        appSettings["DefaultSaveClientProductFileLocation"].Value = newValue;
+
+                        // Save the changes back to the configuration file
+                        config.Save(ConfigurationSaveMode.Modified);
+                        ConfigurationManager.RefreshSection("appSettings");
+                    }
+                }
+                ConfigurationManager.RefreshSection("appSettings");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         #endregion
@@ -172,21 +272,32 @@ namespace iCustomerCareSystem.ViewModels
             FilteredClientProducts = CollectionViewSource.GetDefaultView(ClientProducts);
         }
 
-        private async Task LoadDataAsync()
+        private async System.Threading.Tasks.Task LoadDataAsync()
         {
             try
             {
                 ClientProducts = new ObservableCollection<ClientProducts>(
-                    await _clientsDbContext.ClientProducts
-                        .Where(x => x.DateOut == null)
-                        .Include(c => c.Client)
-                        .Include(c => c.ProductType)
-                        .ToListAsync()
+                     await _clientsDbContext.ClientProducts
+                         .Where(x => x.DateOut == null || (x.DateOut != null && x.IsReturnInService))
+                         .Include(c => c.Client)
+                         .Include(c => c.ProductType)
+                         .Include(c => c.ProductStatus)
+                         .OrderBy(x => x.ClientProductId)
+                         .ToListAsync()
                 );
 
                 Clients = new ObservableCollection<Client>(
                     await _clientsDbContext.Clients
                         .OrderBy(x => x.FirstName)
+                        .ToListAsync()
+                );
+
+                ActiveInWarrantyProducts = new ObservableCollection<ClientProducts>(
+                    await _clientsDbContext.ClientProducts
+                        .Where(x => x.ProductStatusId == (int)StatusId.Returned && x.WarantyEndDate != null && x.WarantyEndDate >= DateTime.Today)
+                        .Include(c => c.Client)
+                        .Include(c => c.ProductType)
+                        .Include(c => c.ProductStatus)
                         .ToListAsync()
                 );
 
@@ -217,8 +328,21 @@ namespace iCustomerCareSystem.ViewModels
 
         private bool DoesClientMatchFilterText(ClientProducts clientProduct, string filterText)
         {
-            var filterCriteria = new List<string> { "FirstName", "LastName", "Telephone" };
+            var filterCriteria = new List<string> { "ClientProductId", "FirstName", "LastName", "Telephone" };
             var searchText = filterText.ToLower();
+
+            // for ClientProduct
+            foreach (var property in clientProduct.GetType().GetProperties())
+            {
+                if (filterCriteria.Contains(property.Name))
+                {
+                    var value = property.GetValue(clientProduct)?.ToString()?.ToLower();
+                    if (value != null && value.Contains(searchText))
+                        return true;
+                }
+            }
+
+            // for Client reference
             foreach (var property in clientProduct.Client.GetType().GetProperties())
             {
                 if (filterCriteria.Contains(property.Name))
@@ -232,6 +356,22 @@ namespace iCustomerCareSystem.ViewModels
         }
 
         #endregion
+
+        private async void SearchHistoricalProduct()
+        {
+            if (!string.IsNullOrEmpty(SearchText))
+            {
+                var searchText = SearchText.ToLower();
+                HistoricalClients = new ObservableCollection<ClientProducts>(
+                    await _clientsDbContext.ClientProducts
+                    .Where(x => x.DateOut != null && x.ProductStatusId == (int)StatusId.Returned && (x.Client.FirstName.ToLower().Contains(searchText) || x.Client.LastName.ToLower().Contains(searchText)))
+                    .Include(c => c.Client)
+                             .Include(c => c.ProductType)
+                             .Include(c => c.ProductStatus)
+                             .OrderBy(x => x.ClientProductId)
+                             .ToListAsync());
+            }
+        }
 
         private void AddNewClientProduct()
         {
@@ -272,6 +412,23 @@ namespace iCustomerCareSystem.ViewModels
             childWindow.ShowDialog();
         }
 
+        private void ReEntryClientProduct()
+        {
+            if (SelectedActiveInWarrantyProduct != null)
+            {
+                SelectedActiveInWarrantyProduct.IsReturnInService = true;
+                SelectedActiveInWarrantyProduct.ProductStatusId = (int)StatusId.Recepted;
+                SelectedActiveInWarrantyProduct.StatusReason = "Returnare in service - garantie";
+                var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedActiveInWarrantyProduct);
+                AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
+                childWindow.Owner = Application.Current.MainWindow;
+                childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                addEditProductViewModel.ChildWindow = childWindow;
+                addEditProductViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
+                childWindow.ShowDialog();
+            }
+        }
+
         private void OpenProductTypesNomenclator()
         {
             var openProductTypeNomenclatorViewModel = new EquipmentTypeViewModel(_clientsDbContext);
@@ -280,6 +437,17 @@ namespace iCustomerCareSystem.ViewModels
             childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             openProductTypeNomenclatorViewModel.ChildWindow = childWindow;
             openProductTypeNomenclatorViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
+            childWindow.ShowDialog();
+        }
+
+        private void ChangeProductStatus()
+        {
+            var changeProductStatusViewModel = new ChangeStatusViewModel(_clientsDbContext, SelectedClientProduct);
+            ChangeStatusView childWindow = new ChangeStatusView(changeProductStatusViewModel);
+            childWindow.Owner = Application.Current.MainWindow;
+            childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            changeProductStatusViewModel.ChildWindow = childWindow;
+            changeProductStatusViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
             childWindow.ShowDialog();
         }
 
@@ -305,8 +473,132 @@ namespace iCustomerCareSystem.ViewModels
             ImageSource = image;
         }
 
-        private void PrintServiceEntry()
+        private async void PrintServiceEntry()
         {
+            string outputPath = ConfigurationManager.AppSettings["DefaultSaveClientProductFileLocation"].ToString();
+            if (string.IsNullOrWhiteSpace(outputPath))
+                return;
+            
+            Dictionary<string, string> bookmarksDictionary = PrepareBookmarks(SelectedClientProduct ?? new ClientProducts());
+            
+            string? executingLocation = Path.GetDirectoryName(path: System.Reflection.Assembly.GetExecutingAssembly().Location);
+            if (string.IsNullOrWhiteSpace(executingLocation))
+                return;
+            
+            string resourcesFolder = Path.Combine(executingLocation, "Resources");
+            string templatePath = Path.Combine(resourcesFolder, "fisa_service_template.docx");
+            string docName = SelectedClientProduct?.Client.FirstName + " " + SelectedClientProduct?.Client.LastName + " " + SelectedClientProduct?.DateIn.ToString("dd-mm-yyy") + ".docx";
+            string newFilePath = Path.Combine(outputPath, docName);
+
+            if (File.Exists(newFilePath))
+            {
+                File.Delete(newFilePath);
+            }
+
+            File.Copy(templatePath, newFilePath, true);
+
+            bool isSuccess = false;
+            try
+            {
+                isSuccess = CreateServiceEntryDocument(bookmarksDictionary, newFilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (isSuccess)
+                {
+                    DialogResult result = MessageBox.Show("Do you want to open the document?", "Open Document", MessageBoxButtons.YesNo);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        OpenDocument(Path.GetFullPath(newFilePath));
+                    }
+                }
+            }
+        }
+
+        private void OpenDocument(string filePath)
+        {
+            Type wordType = Type.GetTypeFromProgID("Word.Application");
+
+            if (wordType != null)
+            {
+                dynamic wordApp = Activator.CreateInstance(wordType);
+
+                try
+                {
+                    wordApp.Visible = true; 
+
+                    // Open the document
+                    dynamic doc = wordApp.Documents.Open(filePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: " + ex.Message, "Error");
+                }
+                finally
+                {
+                }
+            }
+            else
+            {
+                MessageBox.Show("Microsoft Word is not installed.", "Error");
+            }
+        }
+
+        private bool CreateServiceEntryDocument(Dictionary<string, string> bookmarksDictionary, string newFilePath)
+        {
+            bool isSuccess;
+            using (WordprocessingDocument doc = WordprocessingDocument.Open(newFilePath, true))
+            {
+                MainDocumentPart? mainPart = doc.MainDocumentPart;
+
+                foreach (var item in bookmarksDictionary)
+                {
+                    BookmarkStart? bookmarkStart = mainPart?.Document?.Body?.Descendants<BookmarkStart>()
+                                                                        .FirstOrDefault(b => b.Name == item.Key);
+
+                    if (bookmarkStart != null)
+                    {
+                        Run newRun = new Run(new Text(item.Value));
+                        RunProperties runProperties = new RunProperties();
+                        newRun.Append(runProperties);
+
+                        Run run = new Run();
+                        run.Append(newRun);
+
+                        bookmarkStart?.Parent?.InsertAfter(run, bookmarkStart);
+                    }
+                }
+
+                // Save changes
+                mainPart?.Document.Save();
+                isSuccess = true;
+            }
+
+            return isSuccess;
+        }
+
+        private Dictionary<string, string> PrepareBookmarks(ClientProducts selectedClientProduct)
+        {
+            Dictionary<string, string> bookmarks = new Dictionary<string, string>
+            {
+                { "numar_fisa", selectedClientProduct.ClientProductId.ToString() },
+                { "data_fisa", selectedClientProduct.DateIn.ToString("dd-MM-yyyy") },
+                { "client_name", selectedClientProduct.Client.FirstName + " " + selectedClientProduct.Client.LastName },
+                { "telefon", selectedClientProduct.Client.Telephone },
+                { "echipament", selectedClientProduct.ProductType.Name + " " +  selectedClientProduct.ProductName},
+                { "serial_no", selectedClientProduct.ProductConfiguration },
+                { "defect", selectedClientProduct.ServiceOperation },
+                { "accesorii", selectedClientProduct.ProductConfiguration },
+                { "observatii", selectedClientProduct.Reason }
+            };
+
+
+            return bookmarks;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
