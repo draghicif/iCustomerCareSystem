@@ -80,6 +80,7 @@ namespace iCustomerCareSystem.ViewModels
             _selectedClient = selectedClient;
             _selectedClientProduct = new ClientProducts();
             _selectedClientProduct.Client = _selectedClient;
+            _selectedClientProduct.Fixed = false;
             ProductTypes = new ObservableCollection<ProductType>(clientsDbContext.ProductType);
             SaveCommand = new DelegateCommand(async () => await SaveClientAsync());
         }

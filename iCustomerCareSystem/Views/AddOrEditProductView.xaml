@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:local="clr-namespace:iCustomerCareSystem.Utils" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="AddOrEditClientView" Height="650" Width="375">
+        Title="Editare Produs in Service" Height="660" Width="375">
 
     <Window.Resources>
         <Style x:Key="CustomGroupBoxStyle" TargetType="GroupBox">
@@ -93,6 +93,14 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="10">
+                        <Label Width="120px">Descriere defect:</Label>
+                        <TextBox Width="200px" VerticalAlignment="Center" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                Text="{Binding SelectedClientProduct.Reason, UpdateSourceTrigger=PropertyChanged}" Height="70"/>
+                    </StackPanel>
+
+                    
+
+                    <StackPanel Orientation="Horizontal" Margin="10">
 
                         <Label Width="120px">Operatiune Service:</Label>
 
@@ -100,27 +108,22 @@
                             Text="{Binding SelectedClientProduct.ServiceOperation, UpdateSourceTrigger=PropertyChanged}" Height="70"/>
 
                     </StackPanel>
-
+                    
                     <StackPanel Orientation="Horizontal" Margin="10">
 
                         <Label Width="120px">Pret:</Label>
 
                         <TextBox Width="200px" VerticalAlignment="Center" HorizontalAlignment="Right" TextAlignment="Right"
                                 Text="{Binding SelectedClientProduct.Price, UpdateSourceTrigger=PropertyChanged}">
-                            
+
                             <i:Interaction.Behaviors>
                                 <local:DecimalInputBehavior />
                             </i:Interaction.Behaviors>
-                            
+
                         </TextBox>
 
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Margin="10">
-                        <Label Width="120px">Descriere defect:</Label>
-                        <TextBox Width="200px" VerticalAlignment="Center" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                                Text="{Binding SelectedClientProduct.Reason, UpdateSourceTrigger=PropertyChanged}" Height="70"/>
-                    </StackPanel>
                 </StackPanel>
             </GroupBox>
 
