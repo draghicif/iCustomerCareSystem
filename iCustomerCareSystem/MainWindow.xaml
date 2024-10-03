@@ -378,7 +378,7 @@
 
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Creaza fisa noua deservice" Command="{Binding PrintnNewServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
+                                    <MenuItem Header="Creaza fisa noua deservice" Command="{Binding PrintNewServiceEntryCommand}" CommandParameter="{Binding SelectedItem, ElementName=MyDataGrid}" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 

@@ -4,7 +4,6 @@ using Prism.Commands;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 
 namespace iCustomerCareSystem.ViewModels

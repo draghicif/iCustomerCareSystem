@@ -4,7 +4,6 @@ using iCustomerCareSystem.Data;
 using iCustomerCareSystem.Models;
 using iCustomerCareSystem.Views;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Office.Interop.Word;
 using Ookii.Dialogs.Wpf;
 using Prism.Commands;
 using System;
@@ -14,6 +13,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Forms;
@@ -196,6 +196,7 @@ namespace iCustomerCareSystem.ViewModels
         public ICommand ChangeProductStatusCommand { get; private set; }
         public ICommand ReEntryClientProductCommand { get; private set; }
         public ICommand SearchHistoricalProductCommand { get; private set; }
+        public ICommand PrintNewServiceEntryCommand { get; private set; }        
 
         #endregion
 
@@ -219,7 +220,8 @@ namespace iCustomerCareSystem.ViewModels
             OpenProductTypesNomenclatorCommand = new DelegateCommand(OpenProductTypesNomenclator);
             ChangeProductStatusCommand = new DelegateCommand(ChangeProductStatus);
             ReEntryClientProductCommand = new DelegateCommand(ReEntryClientProduct);
-            SearchHistoricalProductCommand = new DelegateCommand(SearchHistoricalProduct);    
+            SearchHistoricalProductCommand = new DelegateCommand(SearchHistoricalProduct);
+            PrintNewServiceEntryCommand = new DelegateCommand(PrintNewServiceEntry);
 
             LoadLogo();
 
@@ -375,11 +377,16 @@ namespace iCustomerCareSystem.ViewModels
 
         private void AddNewClientProduct()
         {
-            var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClient);
+            AddNewClientProduct(_clientsDbContext, SelectedClient);
+        }
+
+        private void AddNewClientProduct(ClientsDbContext clientsDbContext, Client? client)
+        {
+            var addEditProductViewModel = new AddOrEditProductViewModel(clientsDbContext, client);
             AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
             childWindow.Owner = Application.Current.MainWindow;
             childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            addEditProductViewModel.ChildWindow = childWindow;
+            addEditProductVie`wModel.ChildWindow = childWindow;
             addEditProductViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
             childWindow.ShowDialog();
         }
@@ -403,7 +410,12 @@ namespace iCustomerCareSystem.ViewModels
 
         private void EditClientProduct()
         {
-            var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedClientProduct);
+            EditClientProduct(_clientsDbContext, SelectedClientProduct);
+        }
+
+        private void EditClientProduct(ClientsDbContext dbContext, ClientProducts clientProduct)
+        {
+            var addEditProductViewModel = new AddOrEditProductViewModel(dbContext, clientProduct);
             AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
             childWindow.Owner = Application.Current.MainWindow;
             childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -414,12 +426,38 @@ namespace iCustomerCareSystem.ViewModels
 
         private void ReEntryClientProduct()
         {
-            if (SelectedActiveInWarrantyProduct != null)
+            ReEntryClientProduct(SelectedActiveInWarrantyProduct, false);
+        }
+
+        private async void ReEntryClientProduct(ClientProducts clientProduct, bool isWaranty)
+        {
+            if (clientProduct != null)
             {
-                SelectedActiveInWarrantyProduct.IsReturnInService = true;
-                SelectedActiveInWarrantyProduct.ProductStatusId = (int)StatusId.Recepted;
-                SelectedActiveInWarrantyProduct.StatusReason = "Returnare in service - garantie";
-                var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, SelectedActiveInWarrantyProduct);
+                clientProduct.IsReturnInService = isWaranty ? true : false;
+                clientProduct.ProductStatusId = (int)StatusId.Recepted;
+                clientProduct.StatusReason = isWaranty ? "Returnare in service - garantie" : string.Empty;
+                if (isWaranty)
+                {
+                    var newEntryProduct = CopyObjectWithoutId(clientProduct);
+                    newEntryProduct.DateIn = DateTime.Now;
+                    newEntryProduct.DateOut = null;
+                    newEntryProduct.IsUrgent = false;
+                    newEntryProduct.StatusReason = string.Empty;
+                    newEntryProduct.Fixed = null;
+                    newEntryProduct.WarantyEndDate = null;
+                    newEntryProduct.Price = 0;
+                    _clientsDbContext.ClientProducts.Add(newEntryProduct);
+                    try
+                    {
+                        await _clientsDbContext.SaveChangesAsync();
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                    return;
+                }
+                var addEditProductViewModel = new AddOrEditProductViewModel(_clientsDbContext, clientProduct);
                 AddOrEditProductView childWindow = new AddOrEditProductView(addEditProductViewModel);
                 childWindow.Owner = Application.Current.MainWindow;
                 childWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -427,6 +465,22 @@ namespace iCustomerCareSystem.ViewModels
                 addEditProductViewModel.ClientAddedSuccessfully += HandleClientAddedSuccessfully;
                 childWindow.ShowDialog();
             }
+        }
+
+        static T CopyObjectWithoutId<T>(T original)
+        {
+            T copied = Activator.CreateInstance<T>();
+            PropertyInfo[] properties = typeof(T).GetProperties();
+
+            foreach (PropertyInfo property in properties)
+            {
+                if (property.Name != "ClientProductId")
+                {
+                    property.SetValue(copied, property.GetValue(original));
+                }
+            }
+
+            return copied;
         }
 
         private void OpenProductTypesNomenclator()
@@ -473,21 +527,37 @@ namespace iCustomerCareSystem.ViewModels
             ImageSource = image;
         }
 
-        private async void PrintServiceEntry()
+        private void PrintServiceEntry()
+        {
+            if (SelectedClientProduct != null)
+            {
+                PrintServiceEntry(SelectedClientProduct);
+            }
+        }
+
+        private void PrintNewServiceEntry()
+        {
+            if (SelectedHistoricalClient != null)
+            {
+                ReEntryClientProduct(SelectedHistoricalClient, true);
+            }
+        }
+
+        private void PrintServiceEntry(ClientProducts selectedClientProduct)
         {
             string outputPath = ConfigurationManager.AppSettings["DefaultSaveClientProductFileLocation"].ToString();
             if (string.IsNullOrWhiteSpace(outputPath))
                 return;
-            
-            Dictionary<string, string> bookmarksDictionary = PrepareBookmarks(SelectedClientProduct ?? new ClientProducts());
-            
+
+            Dictionary<string, string> bookmarksDictionary = PrepareBookmarks(selectedClientProduct ?? new ClientProducts());
+
             string? executingLocation = Path.GetDirectoryName(path: System.Reflection.Assembly.GetExecutingAssembly().Location);
             if (string.IsNullOrWhiteSpace(executingLocation))
                 return;
-            
+
             string resourcesFolder = Path.Combine(executingLocation, "Resources");
             string templatePath = Path.Combine(resourcesFolder, "fisa_service_template.docx");
-            string docName = SelectedClientProduct?.Client.FirstName + " " + SelectedClientProduct?.Client.LastName + " " + SelectedClientProduct?.DateIn.ToString("dd-mm-yyy") + ".docx";
+            string docName = selectedClientProduct?.Client.FirstName + " " + selectedClientProduct?.Client.LastName + " " + selectedClientProduct?.DateIn.ToString("dd-mm-yyy") + ".docx";
             string newFilePath = Path.Combine(outputPath, docName);
 
             if (File.Exists(newFilePath))

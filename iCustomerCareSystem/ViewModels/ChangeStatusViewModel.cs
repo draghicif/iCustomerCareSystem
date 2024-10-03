@@ -208,15 +208,13 @@ namespace iCustomerCareSystem.ViewModels
 
         private void CalculateNumberOfMonths()
         {
-            // Add your logic to calculate the number of months based on the selected value
             if (SelectedMonthValue.HasValue)
             {
-                // For example, if 1, 2, or 3 is selected, set the NumberOfMonths accordingly
-                NumberOfMonths = SelectedMonthValue.Value * 3; // Modify this logic as per your requirement
+                NumberOfMonths = SelectedMonthValue.Value * 3; 
             }
             else
             {
-                NumberOfMonths = 0; // Set a default value when no selection is made
+                NumberOfMonths = 0; 
             }
         }
 
